@@ -1,0 +1,87 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+```{r}
+# load csv file into R table 
+mydata <- read.table("r_input.csv", header=TRUE,
+   sep=",")
+# convert above to frequency table
+freqTable <- xtabs(frequency~teochew_tone+mandarin_tone, mydata)
+freqTable
+```
+
+```{r}
+library(ca)
+set.seed(42)
+
+ca.fit <- ca(freqTable)
+ca.plot <- plot(ca.fit)
+```
+
+**Convert the plot object for ggplot**
+```{r}
+make.ca.plot.df <- function (ca.plot.obj,
+                             row.lab = "Rows",
+                             col.lab = "Columns") {
+  df <- data.frame(Label = c(rownames(ca.plot.obj$rows),
+                             rownames(ca.plot.obj$cols)),
+                   Dim1 = c(ca.plot.obj$rows[,1], ca.plot.obj$cols[,1]),
+                   Dim2 = c(ca.plot.obj$rows[,2], ca.plot.obj$cols[,2]),
+                   Variable = c(rep(row.lab, nrow(ca.plot.obj$rows)),
+                                rep(col.lab, nrow(ca.plot.obj$cols))))
+  rownames(df) <- 1:nrow(df)
+  df
+}
+ca.plot.df <- make.ca.plot.df(ca.plot,
+                              row.lab = "Teochew",
+                              col.lab = "Mandarin")
+```
+
+**Getting Variances**
+```{r}
+ca.sum <- summary(ca.fit)
+dim.var.percs <- ca.sum$scree[,"values2"]
+dim.var.percs <- dim.var.percs[0:2]
+dim.var.percs
+```
+
+**Plotting**
+```{r}
+library(ggrepel)
+library(ggplot2)
+
+p <- ggplot(ca.plot.df, aes(x = Dim1, y = Dim2,
+                       col = Variable, shape = Variable,
+                       label = Label)) +
+  geom_vline(xintercept = 0, lty = "dashed", alpha = .5) +
+  geom_hline(yintercept = 0, lty = "dashed", alpha = .5) +
+  geom_point()
+
+p <- p +
+  scale_x_continuous(limits = range(ca.plot.df$Dim1) + c(diff(range(ca.plot.df$Dim1)) * -0.2,
+                                                         diff(range(ca.plot.df$Dim1)) * 0.2)) +
+  scale_y_continuous(limits = range(ca.plot.df$Dim2) + c(diff(range(ca.plot.df$Dim2)) * -0.2,
+                                                         diff(range(ca.plot.df$Dim2)) * 0.2)) +
+  scale_size(range = c(4, 7), guide = F) +
+  geom_text_repel(aes(label = Label)) + 
+  guides(colour = guide_legend(override.aes = list(size = 4)))
+
+p <- p +
+  labs(x = paste0("Dimension 1 (", signif(dim.var.percs[1], 3), "%)"),
+       y = paste0("Dimension 2 (", signif(dim.var.percs[2], 3), "%)"),
+       col = "", shape = "") +
+  theme_minimal()
+
+plot(p)
+```
+
+reference: https://www.r-bloggers.com/correspondence-analysis-visualization-using-ggplot/
+
+make a 3D plot 
+```{r}
+library(plot3D)
+plot3d.ca(sca_model, labels=c(1,1)) # see both row and column labels
+```
