@@ -17,9 +17,9 @@ class TransformXY:
 
     def transform_data(self, y_enc):
         mandarin_df = self.data[['citation_man', 'initial_man', 'final_man']].copy()
-        teochew_df = self.data[['citation_teo', 'initial_teo', 'final_teo']].copy()
+        self.teochew_df = self.data[['BENZI_IN_SOURCE_teo', 'citation_teo', 'initial_teo', 'final_teo']].copy()
         train_x, test_x = train_test_split(mandarin_df, test_size=0.2, random_state=42)
-        train_y, test_y = train_test_split(teochew_df, test_size=0.2, random_state=42)
+        train_y, test_y = train_test_split(self.teochew_df, test_size=0.2, random_state=42)
 
         # convert categorical values to one-hot encoding
         self.encX = OneHotEncoder(handle_unknown='ignore')
