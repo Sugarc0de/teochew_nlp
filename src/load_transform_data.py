@@ -52,39 +52,21 @@ class TransformXY:
             self.encI = LabelEncoder()
             self.encF = LabelEncoder()
 
-            self.encT.fit(teochew_df['citation_teo'].values.tolist())
-            self.encI.fit(teochew_df['initial_teo'].values.tolist())
-            self.encF.fit(teochew_df['final_teo'].values.tolist())
+#             self.encT.fit(self.teochew_df['citation_teo'].values.tolist())
+#             self.encI.fit(self.teochew_df['initial_teo'].values.tolist())
+#             self.encF.fit(self.teochew_df['final_teo'].values.tolist())
 
-            self.Y_train_tone = self.encT.transform(train_y['citation_teo'].values.tolist())
-            self.Y_train_initial = self.encI.transform(train_y['initial_teo'].values.tolist())
-            self.Y_train_final = self.encF.transform(train_y['final_teo'].values.tolist())
+            self.Y_train_tone = self.encT.fit_transform(train_y['citation_teo'].values.tolist())
+            self.Y_train_initial = self.encI.fit_transform(train_y['initial_teo'].values.tolist())
+            self.Y_train_final = self.encF.fit_transform(train_y['final_teo'].values.tolist())
 
+            self.le_dict = dict(zip(self.encF.classes_, self.encF.transform(self.encF.classes_)))
+            test_y['final_teo'] = test_y['final_teo'].apply(lambda x: self.le_dict.get(x, -1))
+            
             self.Y_test_tone = self.encT.transform(test_y['citation_teo'].values.tolist())
             self.Y_test_initial = self.encI.transform(test_y['initial_teo'].values.tolist())
-            self.Y_test_final = self.encF.transform(test_y['final_teo'].values.tolist())
-
-        elif y_enc == 'LabelBinarizer':
-            self.encT = LabelBinarizer()
-            self.encI = LabelBinarizer()
-            self.encF = LabelBinarizer()
-
-            self.Y_train_tone = np.array(train_y['citation_teo'].values.tolist()).reshape(-1, 1)
-            self.Y_train_initial = np.array(train_y['initial_teo'].values.tolist()).reshape(-1, 1)
-            self.Y_train_final = np.array(train_y['final_teo'].values.tolist()).reshape(-1, 1)
-
-            self.encT.fit(self.Y_train_tone)
-            self.encI.fit(self.Y_train_initial)
-            self.encF.fit(self.Y_train_final)
-
-            self.Y_train_tone = self.encT.transform(self.Y_train_tone)
-            self.Y_train_initial = self.encI.transform(self.Y_train_initial)
-            self.Y_train_final = self.encF.transform(self.Y_train_final)
-
-            self.Y_test_tone = self.encT.transform(test_y['citation_teo'].values.tolist())
-            self.Y_test_initial = self.encI.transform(test_y['initial_teo'].values.tolist())
-            self.Y_test_final = self.encF.transform(test_y['final_teo'].values.tolist())
-
+#             self.Y_test_final = self.encF.transform(test_y['final_teo'].values.tolist())
+            self.Y_test_final = test_y['final_teo']
 
 
 
